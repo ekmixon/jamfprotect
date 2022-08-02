@@ -92,7 +92,7 @@ LIST_ALERTS_QUERY = """
 
 def __main__():
 
-    if not set({MIN_SEVERITY, MAX_SEVERITY}).issubset(
+    if not {MIN_SEVERITY, MAX_SEVERITY}.issubset(
         {"Informational", "Low", "Medium", "High"}
     ):
         print(

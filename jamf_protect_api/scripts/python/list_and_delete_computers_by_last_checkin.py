@@ -110,57 +110,58 @@ def __main__():
  
     # Get the access token
     access_token = get_access_token(PROTECT_INSTANCE, CLIENT_ID, PASSWORD)
- 
+
     # Get list of UUIDs of Computers that have not checked in in the past 12 weeks
     cutoff_weeks = 12
     cutoff_date = datetime.datetime.now() - datetime.timedelta(weeks=cutoff_weeks)
- 
+
     next_token = None
     computers = []
     page_count = 1
- 
+
     print("Retrieving paginated results:")
- 
+
     while True:
         print(f"  Retrieving page {page_count} of results...")
- 
+
         vars = {
-            "checkin_cutoff": cutoff_date.isoformat() + "Z",
+            "checkin_cutoff": f"{cutoff_date.isoformat()}Z",
             "page_size": 100,
             "next": next_token,
         }
- 
+
+
         resp = make_api_call(PROTECT_INSTANCE, access_token, LIST_COMPUTERS_QUERY, vars)
         next_token = resp["data"]["listComputers"]["pageInfo"]["next"]
         computers.extend(resp["data"]["listComputers"]["items"])
- 
+
         if next_token is None:
             break
- 
+
         page_count += 1
- 
+
     print(f"Found {len(computers)} computers matching filter.\n")
- 
+
     # Iterate through returned Computers, prompting user before deletion for each
     for computer in computers:
- 
+
         user_resp = input(
             f"Delete computer '{computer['hostName']}' (last checkin {computer['checkin']})? y/N "
         )
- 
+
         if user_resp.lower() != "y":
             print(f"Skipping deletion of '{computer['hostName']}.")
             continue
- 
+
         variables = {"uuid": computer["uuid"]}
- 
+
         # Delete the individual Computer (including all associated Logs and Alerts)
         resp = make_api_call(
             PROTECT_INSTANCE, access_token, DELETE_COMPUTER_QUERY, variables
         )
- 
+
         print(f"Deleted computer '{resp['data']['deleteComputer']['hostName']}'.")
- 
+
     print("Done.")
  
  
